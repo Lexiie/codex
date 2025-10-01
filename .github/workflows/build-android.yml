@@ -1,0 +1,33 @@
+name: Build Codex-RS for Android (Termux)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - name: Install Android NDK & toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y android-sdk android-sdk-platform-23
+          rustup target add aarch64-linux-android
+
+      - name: Build release (bionic target)
+        env:
+          OPENSSL_NO_VENDOR: "1"
+        run: |
+          cargo build --release --target aarch64-linux-android
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-rs-aarch64-android
+          path: target/aarch64-linux-android/release/
